@@ -27,7 +27,7 @@ I do not guarantee for this to work in the future but in my environment it works
 ## How to install
 
 1. Install [python](https://www.python.org/downloads/windows/) on your windows machine
-2. `pip install paho-mqtt`
+2. `pip install -r requirements.txt`
 3. create your `config.ini` from `config.ini.example`
 4. `python service.py`
 
@@ -40,7 +40,7 @@ To run the script as windows service and start it automatically with windows, yo
 
 ![example config for NSSM service installer](https://user-images.githubusercontent.com/10167243/106614925-31b8cc80-656c-11eb-9bf5-fd55f859683b.png)
 
-![Log on/user config for NSSM service installer](https://user-images.githubusercontent.com/10167243/106615271-92480980-656c-11eb-9b44-badbcefcbf14.png)
+![log on/user config for NSSM service installer](https://user-images.githubusercontent.com/10167243/106615271-92480980-656c-11eb-9b44-badbcefcbf14.png)
 
 ## Example: Integration in [Home Assistant](https://www.home-assistant.io/)
 
