@@ -28,7 +28,7 @@ I do not guarantee for this to work in the future but in my environment it works
 
 1. Install [python](https://www.python.org/downloads/windows/) on your windows machine
 2. `pip install paho-mqtt`
-3. edit `config.ini`
+3. create your `config.ini` from `config.ini.example`
 4. `python service.py`
 
 ## As a service

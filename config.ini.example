@@ -1,0 +1,8 @@
+[service]
+interval_in_s = 10
+[mqtt]
+hostname = mqtthostname
+port = 1883
+user = your_username
+password = your_password
+path = windows_webcam_monitor/used_by
