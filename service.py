@@ -23,6 +23,9 @@ def webcam_used_by():
     
     return None
 
+def get_executable_name_from_path(path):
+    return path.split("#")[-1]
+
 if __name__ == '__main__':
     config = configparser.ConfigParser()
     config.read('config.ini')
@@ -34,6 +37,8 @@ if __name__ == '__main__':
     while True:
         used_by = webcam_used_by()
         if used_by != None:
+            if config['mqtt'].getboolean('publishFullPath') == False:
+                used_by = get_executable_name_from_path(used_by)
             client.publish(config['mqtt']['path'], used_by)
         else:
             client.publish(config['mqtt']['path'], 'off')
