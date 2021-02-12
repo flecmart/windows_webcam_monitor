@@ -21,7 +21,7 @@ I do not guarantee for this to work in the future but in my environment it works
 ## Dependencies
 
 - Windows 10
-- python >= 3.4
+- python >= 3.5
 - [paho-mqtt](https://pypi.org/project/paho-mqtt/)
 
 ## How to install
