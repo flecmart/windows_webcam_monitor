@@ -3,7 +3,10 @@ from contextlib import suppress
 import itertools
 import time
 import configparser
+import traceback
 import paho.mqtt.client as mqtt
+
+_connected_to_mqtt = False
 
 def subkeys(path, key, flags=0):
     with suppress(WindowsError), OpenKey(key, path, 0, KEY_READ|flags) as k:
@@ -26,21 +29,39 @@ def webcam_used_by():
 def get_executable_name_from_path(path):
     return path.split("#")[-1]
 
+def on_connect(client, userdata, flags, rc):
+    global _connected_to_mqtt
+    if rc == 0:
+        _connected_to_mqtt = True
+    else:
+        _connected_to_mqtt = False
+        
+def on_disconnect(client, userdata, rc):
+    global _connected_to_mqtt
+    _connected_to_mqtt = False
+        
 if __name__ == '__main__':
     config = configparser.ConfigParser()
     config.read('config.ini')
     client = mqtt.Client(client_id='windows_webcam_monitor')
+    client.on_connect = on_connect
+    client.on_disconnect = on_disconnect
+    client.reconnect_delay_set(min_delay=1, max_delay=300)
     client.username_pw_set(config['mqtt']['user'], config['mqtt']['password'])
     client.connect(config['mqtt']['hostname'], int(config['mqtt']['port']))
-    client.loop_start()
-
+    client.loop_start() # reconnects are handled automatically
+    
     while True:
-        used_by = webcam_used_by()
-        if used_by != None:
-            if config['mqtt'].getboolean('publishFullPath') == False:
-                used_by = get_executable_name_from_path(used_by)
-            client.publish(config['mqtt']['path'], used_by)
-        else:
-            client.publish(config['mqtt']['path'], 'off')
-        
-        time.sleep(int(config['service']['interval_in_s']))
+        if _connected_to_mqtt:
+            try:
+                used_by = webcam_used_by()
+                if used_by != None:
+                    if config['mqtt'].getboolean('publishFullPath') == False:
+                        used_by = get_executable_name_from_path(used_by)
+                    client.publish(config['mqtt']['path'], used_by)
+                else:
+                    client.publish(config['mqtt']['path'], 'off')
+            except Exception:
+                traceback.print_exception()
+
+            time.sleep(int(config['service']['interval_in_s']))
