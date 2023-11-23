@@ -58,9 +58,9 @@ if __name__ == '__main__':
                 if used_by != None:
                     if config['mqtt'].getboolean('publishFullPath') == False:
                         used_by = get_executable_name_from_path(used_by)
-                    client.publish(config['mqtt']['path'], used_by)
+                    client.publish(config['mqtt']['topic'], used_by)
                 else:
-                    client.publish(config['mqtt']['path'], 'off')
+                    client.publish(config['mqtt']['topic'], 'off')
             except Exception:
                 traceback.print_exception()
 

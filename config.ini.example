@@ -5,5 +5,5 @@ hostname = mqtthostname
 port = 1883
 user = your_username
 password = your_password
-path = windows_webcam_monitor/used_by
+topic = windows_webcam_monitor/used_by
 publishFullPath = yes
