@@ -8,26 +8,33 @@ import paho.mqtt.client as mqtt
 
 _connected_to_mqtt = False
 
-def subkeys(path, key, flags=0):
+def _subkeys(path, key, flags=0):
     with suppress(WindowsError), OpenKey(key, path, 0, KEY_READ|flags) as k:
         for i in itertools.count():
             yield EnumKey(k, i)
 
-def webcam_used(key):
-    return QueryValueEx(key, "LastUsedTimeStop")[0] == 0
+def _webcam_used(key):
+    try:
+        webcam_currently_in_use = QueryValueEx(key, "LastUsedTimeStop")[0] == 0
+    except:
+        webcam_currently_in_use = False
+    return webcam_currently_in_use
 
-def webcam_used_by():
-    webcam_key = r'SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\webcam\NonPackaged'
-
-    for key in subkeys(webcam_key, HKEY_CURRENT_USER):
-        subkey = OpenKey(HKEY_CURRENT_USER, f'{webcam_key}\{key}')
-        if (webcam_used(subkey)):
+def _webcam_used_by(registry_key):
+    for key in _subkeys(registry_key, HKEY_CURRENT_USER):
+        subkey = OpenKey(HKEY_CURRENT_USER, f'{registry_key}\{key}')
+        if (_webcam_used(subkey)):
             return key
     
     return None
 
-def get_executable_name_from_path(path):
-    return path.split("#")[-1]
+def get_app_using_webcam():
+    return \
+        _webcam_used_by(r'SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\webcam\NonPackaged') or \
+        _webcam_used_by(r'SOFTWARE\Microsoft\Windows\CurrentVersion\CapabilityAccessManager\ConsentStore\webcam')
+    
+def get_executable_name_from_registry_key(key):
+    return key.split('#')[-1] if '#' in key else key.split('_')[0]
 
 def on_connect(client, userdata, flags, rc):
     global _connected_to_mqtt
@@ -54,10 +61,10 @@ if __name__ == '__main__':
     while True:
         if _connected_to_mqtt:
             try:
-                used_by = webcam_used_by()
+                used_by = get_app_using_webcam()
                 if used_by != None:
                     if config['mqtt'].getboolean('publishFullPath') == False:
-                        used_by = get_executable_name_from_path(used_by)
+                        used_by = get_executable_name_from_registry_key(used_by)
                     client.publish(config['mqtt']['topic'], used_by)
                 else:
                     client.publish(config['mqtt']['topic'], 'off')
